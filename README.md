@@ -1,2 +1,2 @@
 # Vagrants
-一些环境的搭建
+vagrant + virtualbox + ansible 实现环境搭建
