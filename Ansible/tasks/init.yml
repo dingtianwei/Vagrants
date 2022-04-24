@@ -21,6 +21,7 @@
     content: "{{ runUser }} ALL=(ALL) NOPASSWD:ALL\n"
     dest: "/etc/sudoers.d/99_{{ runUser }}"
     mode: 0440
+
 - name: deliver authorized_keys
   authorized_key:
     user: "{{item}}"
@@ -30,6 +31,17 @@
     - "vagrant"
     - "root"
     - "{{ runUser }}"
+
+- name: deliver specific authorized_keys
+  authorized_key:
+    user: "{{item}}"
+    key: "{{ lookup('file', (playbook_dir + 'dingtianwei_id_rsa.pub')) }}"
+    state: present
+  with_items:
+    - "vagrant"
+    - "root"
+    - "{{ runUser }}"
+  
 
 - name: install packages
   apt: 
