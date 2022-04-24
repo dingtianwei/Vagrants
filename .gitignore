@@ -1,0 +1,6 @@
+*.vdi
+.vagrant
+*~
+.DS_Store
+.idea/
+*.pyc
