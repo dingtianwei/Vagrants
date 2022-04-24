@@ -1,0 +1,62 @@
+- name: query docker-ce-cli
+  shell: "dpkg -l docker-ce-cli | grep {{ docker.version }} | wc -l"
+  register: query_docker_ce_cli
+  changed_when: "query_docker_ce_cli.stdout.strip() == '0'"
+
+
+- name: query docker-ce
+  shell: "dpkg -l docker-ce | grep {{ docker.version }} | wc -l"
+  register: query_docker_ce
+  changed_when: "query_docker_ce.stdout.strip() == '0'"
+
+
+- name: remove docker
+  apt:
+    name: ["docker", "docker-engine", "docker-ce", "docker.io", "docker-ce-cli"]
+    state: absent
+  when:
+    - query_docker_ce_cli.stdout.strip() != "1" or query_docker_ce.stdout.strip() != "1"
+
+
+- name: add docker GP
+  apt_key:
+    url: http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg
+    state: present
+
+- name: add docker source repository
+  apt_repository:
+    repo: deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu {{ ansible_distribution_release }} stable
+
+
+
+- name: install docker cli
+  apt:
+    name: "docker-ce-cli={{ docker.version }}~ubuntu-{{ ansible_distribution_release }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 86400
+
+
+- name: install docker
+  apt:
+    name: "docker-ce={{ docker.version }}~ubuntu-{{ ansible_distribution_release }}"
+    state: present
+  notify: restart docker
+- name: conf docker
+  copy:
+    content: |
+      {
+        "registry-mirrors": [
+        "https://dec3s4wu.mirror.aliyuncs.com",
+        "https://registry.docker-cn.com"],
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "max-concurrent-downloads": 10,
+        "max-concurrent-uploads": 5,
+        "log-opts": {
+            "max-size": "300m",
+            "max-file": "2"},
+        "live-restore": true
+      }
+    dest: /etc/docker/daemon.json
+  notify: restart docker
+

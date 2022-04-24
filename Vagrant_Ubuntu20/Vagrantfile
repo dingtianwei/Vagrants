@@ -1,0 +1,49 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+if RUBY_PLATFORM =~ /darwin/i
+  SUBNET="10.0.3"
+else
+  SUBNET="10.0.33"
+end
+
+IP="#{SUBNET}.254"
+
+
+
+Vagrant.configure("2") do |config|
+  VAGRANT_EXPERIMENTAL = "disks"
+  config.vm.define "u20" do |server|
+    server.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+    server.vm.box = "bento/ubuntu-20.04"
+    server.vm.hostname="u20"
+    server.vm.network "private_network", ip: "#{IP}"
+    server.vm.network "forwarded_port", guest: 22, host: 2222, id: "ssh", disabled: true
+    server.vm.network "forwarded_port", guest: 22, host: 63254
+    server.vm.provider "virtualbox" do |v|
+        file_for_disk = "machine_disk1.vdi"
+        v.name = "u20"
+        v.memory = 4096 
+        v.cpus = 2
+        unless File.exist?(file_for_disk)
+            v.customize ["createhd", "--filename", file_for_disk, "--size", "10240"]
+            v.customize ["storageattach", 
+                    :id, "--storagectl", 
+                    "SATA Controller", 
+                    "--port", "1", 
+                    "--type", "hdd", 
+                    "--medium", file_for_disk]
+        end
+    end
+    config.vm.provision "ansible" do |ansible|
+      ansible.playbook = "../Ansible/provision.yml"
+      ansible.raw_arguments  = [
+          "--tags=init,docker"
+]
+    end
+    server.vm.provision "shell", inline: <<-SHELL
+        echo "OK"
+    SHELL
+  end
+  
+end

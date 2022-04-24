@@ -1,0 +1,25 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  vars:
+  - timezone: 
+      set_timezone: True
+      timezone: "Asia/Shanghai" 
+  vars_files:
+  - vars.yml
+
+  tasks:
+  - name: include init
+    import_tasks: tasks/init.yml
+    tags:
+    - init
+  - name: include docker
+    import_tasks: tasks/docker.yml
+    tags:
+    - docker
+
+  handlers:
+  - import_tasks: handlers/handlers.yml
+  
+

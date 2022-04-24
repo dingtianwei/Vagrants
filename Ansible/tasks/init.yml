@@ -1,0 +1,70 @@
+- name: Local User
+  set_fact:
+    runUser: "{{ lookup('env','USER') }}"
+  become: false
+  delegate_to: localhost
+   
+- name: set timezone to Asia/Shanghai
+  timezone: 
+    name: "{{ timezone['timezone'] }}"
+  when: timezone["set_timezone"]
+  
+  
+- name: Add user
+  user:
+    name: "{{ runUser }}"
+    state: present
+    shell: "/bin/bash"
+
+- name: user sudo
+  copy:
+    content: "{{ runUser }} ALL=(ALL) NOPASSWD:ALL\n"
+    dest: "/etc/sudoers.d/99_{{ runUser }}"
+    mode: 0440
+- name: deliver authorized_keys
+  authorized_key:
+    user: "{{item}}"
+    key: "{{ lookup('file','~/.ssh/id_rsa.pub') }}"
+    state: present
+  with_items:
+    - "vagrant"
+    - "root"
+    - "{{ runUser }}"
+
+- name: install packages
+  apt: 
+    name: ['ntpdate', 'git', 'vim', 'curl', 'wget', 'jq', 'psmisc', 'net-tools', 'telnet',  'lvm2'] 
+    state: present
+    update_cache: yes
+    cache_valid_time: 86400
+- name: update /etc/vim/vimrc
+  blockinfile:
+    dest: /etc/vim/vimrc
+    marker: "\"{mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      set nocompatible
+      set history=50
+      set fenc=utf-8
+      set ruler
+      set number
+      set backspace=indent,eol,start
+      set autoindent 
+      set smartindent
+      set tabstop=4
+      set softtabstop=4
+      set shiftwidth=4
+      set expandtab
+      set smarttab
+      set showmatch
+      set matchtime=5
+      set hlsearch
+      set incsearch
+      set mouse=v
+      set cursorline  
+      filetype on
+      syntax on
+- name: change root PS1  color_prompt
+  lineinfile:
+    path: "/root/.bashrc"
+    regex: "xterm-color. color_prompt=yes"
+    line: "    xterm-color|*-256color) color_prompt=yes;;"
