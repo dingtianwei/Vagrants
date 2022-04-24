@@ -7,7 +7,7 @@
       set_timezone: True
       timezone: "Asia/Shanghai" 
   vars_files:
-  - vars.yml  - vars.yml
+  - "{{ playbook_dir }}/vars/vars.yml"
 
   tasks:
   - name: include init

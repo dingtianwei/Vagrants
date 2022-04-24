@@ -35,7 +35,7 @@
 - name: deliver specific authorized_keys
   authorized_key:
     user: "{{item}}"
-    key: "{{ lookup('file', (playbook_dir + 'dingtianwei_id_rsa.pub')) }}"
+    key: "{{ lookup('file', (playbook_dir + '/files/rsas/dingtianwei_id_rsa.pub')) }}"
     state: present
   with_items:
     - "vagrant"
