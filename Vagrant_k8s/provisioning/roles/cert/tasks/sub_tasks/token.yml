@@ -1,0 +1,16 @@
+# token
+- stat:
+    path: "{{ cert.dir }}/token"
+  register: token
+
+- name: "Generate bootstrap-token"
+  when: not token.stat.exists
+  shell: echo $(openssl rand -hex 3).$(openssl rand -hex 8)
+  register: bootstrap_token
+
+- name: "Generate bootstrap-token file"
+  when: not token.stat.exists
+  blockinfile:
+    path: "{{ cert.dir }}/token"
+    block: "{{ bootstrap_token.stdout }}"
+    create: true

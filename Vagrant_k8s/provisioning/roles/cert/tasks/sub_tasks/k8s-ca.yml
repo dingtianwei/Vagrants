@@ -1,0 +1,45 @@
+#k8s-ca
+- stat:
+    path: "{{ cert.dir }}/ca.key"
+  register: ca_key
+
+- name: "Generate CA private key"
+  when: not ca_key.stat.exists
+  openssl_privatekey:
+    path: "{{ cert.dir }}/ca.key"
+    type: RSA
+    size: "{{ cert.size }}"
+
+- stat:
+    path: "{{ cert.dir }}/ca.csr"
+  register: ca_csr
+
+- name: "Generate CA request"
+  when: not ca_csr.stat.exists
+  openssl_csr:
+    path: "{{ cert.dir }}/ca.csr"
+    privatekey_path: "{{ cert.dir }}/ca.key"
+    use_common_name_for_san: no
+    common_name: kubernetes
+    create_subject_key_identifier: yes
+    basic_constraints_critical: yes
+    basic_constraints:
+      - CA:TRUE
+    key_usage_critical: yes
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+      - keyCertSign
+
+- stat:
+    path: "{{ cert.dir }}/ca.pem"
+  register: ca_pem
+
+- name: "Generate CA certificate"
+  when: not ca_pem.stat.exists
+  openssl_certificate:
+    path: "{{ cert.dir }}/ca.pem"
+    provider: selfsigned
+    selfsigned_create_subject_key_identifier: never_create
+    privatekey_path: "{{ cert.dir }}/ca.key"
+    csr_path: "{{ cert.dir }}/ca.csr"

@@ -1,0 +1,5 @@
+---
+- name: Fail if not supported OS
+  assert:
+    that: ansible_os_family in ['Debian']
+    msg: "{{ ansible_os_family }} is not a supported OS"

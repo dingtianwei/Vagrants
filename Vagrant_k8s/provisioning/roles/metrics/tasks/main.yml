@@ -1,0 +1,18 @@
+---
+
+- name: "Distribution front-proxy-ca certs"
+  copy:
+    src: "{{ cert.dir }}/front-proxy-ca.pem"
+    dest: "/etc/kubernetes/pki/"
+    owner: root
+    group: root
+    mode: 0644
+
+
+- name: "Generate metrics yaml"
+  template:
+    src: "comp-{{ metrics.version }}.yaml.j2"
+    dest: "/tmp/comp.yaml"
+
+- name: "Deploy metrics"
+  shell: "kubectl apply -f /tmp/comp.yaml"

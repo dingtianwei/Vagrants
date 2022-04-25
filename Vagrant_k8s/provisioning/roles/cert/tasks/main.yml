@@ -1,0 +1,8 @@
+- include: sub_tasks/directory.yml
+- include: sub_tasks/etcd-ca.yml
+- include: sub_tasks/etcd-cert.yml
+- include: sub_tasks/k8s-ca.yml
+- include: sub_tasks/k8s-cert.yml
+- include: sub_tasks/front-proxy.yml
+- include: sub_tasks/sa.yml
+- include: sub_tasks/token.yml

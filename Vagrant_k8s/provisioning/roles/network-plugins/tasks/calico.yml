@@ -1,0 +1,12 @@
+---
+- name: "Generate calico yaml"
+  template:
+    src: "{{item.src}}"
+    dest: "{{item.dest}}"
+  with_items:
+    - {src: "calico-etcd.yaml.j2", dest: "/tmp/calico-etcd.yaml"}
+  tags: calico
+
+- name: "Deploy calico"
+  shell: "kubectl apply -f /tmp/calico-etcd.yaml"
+  tags: calico

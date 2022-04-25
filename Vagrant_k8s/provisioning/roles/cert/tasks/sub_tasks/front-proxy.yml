@@ -1,0 +1,84 @@
+#front-proxy-ca
+- stat:
+    path: "{{ cert.dir }}/front-proxy-ca.key"
+  register: front_proxy_ca_key
+
+- name: "Generate front proxy CA private key"
+  when: not front_proxy_ca_key.stat.exists
+  openssl_privatekey:
+    path: "{{ cert.dir }}/front-proxy-ca.key"
+    type: RSA
+    size: "{{ cert.size }}"
+
+- stat:
+    path: "{{ cert.dir }}/front-proxy-ca.csr"
+  register: front_proxy_ca_csr
+
+- name: "Generate front proxy CA request"
+  when: not front_proxy_ca_csr.stat.exists
+  openssl_csr:
+    path: "{{ cert.dir }}/front-proxy-ca.csr"
+    privatekey_path: "{{ cert.dir }}/front-proxy-ca.key"
+    use_common_name_for_san: no
+    common_name: front-proxy-ca
+    create_subject_key_identifier: yes
+    basic_constraints_critical: yes
+    basic_constraints:
+      - CA:TRUE
+    key_usage_critical: yes
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+      - keyCertSign
+
+- stat:
+    path: "{{ cert.dir }}/front-proxy-ca.pem"
+  register: front_proxy_ca_pem
+
+- name: "Generate front proxy CA certificate"
+  when: not front_proxy_ca_pem.stat.exists
+  openssl_certificate:
+    path: "{{ cert.dir }}/front-proxy-ca.pem"
+    provider: selfsigned
+    selfsigned_create_subject_key_identifier: never_create
+    privatekey_path: "{{ cert.dir }}/front-proxy-ca.key"
+    csr_path: "{{ cert.dir }}/front-proxy-ca.csr"
+# front-proxy-client
+- name: "Generate front-proxy-client private key"
+  openssl_privatekey:
+    path: "{{ cert.dir }}/{{ item }}/front-proxy-client.key"
+    type: RSA
+    size: "{{ cert.size }}"
+  with_items:
+    - "{{ groups['master'] }}"
+
+- name: "Generate front-proxy-client request"
+  openssl_csr:
+    path: "{{ cert.dir }}/{{ item }}/front-proxy-client.csr"
+    privatekey_path: "{{ cert.dir }}/{{ item }}/front-proxy-client.key"
+    common_name: front-proxy-client
+    use_common_name_for_san: no
+    basic_constraints_critical: yes
+    basic_constraints:
+      - CA:FALSE
+    key_usage_critical: yes
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    extended_key_usage:
+      - clientAuth
+  with_items:
+    - "{{ groups['master'] }}"
+
+- name: "Generate front-proxy-client certificate"
+  openssl_certificate:
+    path: "{{ cert.dir }}/{{ item }}/front-proxy-client.pem"
+    provider: ownca
+    ownca_create_subject_key_identifier: never_create
+    ownca_create_authority_key_identifier: no
+    privatekey_path: "{{ cert.dir }}/{{ item }}/front-proxy-client.key"
+    csr_path: "{{ cert.dir }}/{{ item }}/front-proxy-client.csr"
+    ownca_path: "{{ cert.dir }}/front-proxy-ca.pem"
+    ownca_privatekey_path: "{{ cert.dir }}/front-proxy-ca.key"
+  with_items:
+    - "{{ groups['master'] }}"

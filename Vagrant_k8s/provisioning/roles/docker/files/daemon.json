@@ -1,0 +1,12 @@
+{
+    "registry-mirrors": [
+        "https://dec3s4wu.mirror.aliyuncs.com", 
+        "https://registry.docker-cn.com"],
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "max-concurrent-downloads": 10,  
+    "max-concurrent-uploads": 5, 
+    "log-opts": {
+        "max-size": "300m",
+        "max-file": "2"},  
+    "live-restore": true 
+}

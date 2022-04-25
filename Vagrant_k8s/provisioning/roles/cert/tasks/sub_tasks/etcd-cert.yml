@@ -1,0 +1,173 @@
+# etcd-server
+- name: "Generate etcd-server private key"
+  openssl_privatekey:
+    path: "{{ cert.dir }}/{{ item }}/etcd-server.key"
+    type: RSA
+    size: "{{ cert.size }}"
+  with_items:
+    - "{{ groups['etcd'] }}"
+
+- name: "Generate etcd-server request"
+  openssl_csr:
+    path: "{{ cert.dir }}/{{ item }}/etcd-server.csr"
+    privatekey_path: "{{ cert.dir }}/{{ item }}/etcd-server.key"
+    common_name: "{{ item }}"
+    basic_constraints_critical: yes
+    basic_constraints:
+      - CA:FALSE
+    key_usage_critical: yes
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    extended_key_usage:
+      - serverAuth
+      - clientAuth
+    subject_alt_name:
+      - DNS:localhost
+      - DNS:{{ hostvars[item].dns_name}}
+      - DNS:{{ hostvars[item].advertise}}
+      - IP:127.0.0.1
+      - IP:{{ hostvars[item].advertise }}
+  with_items:
+    - "{{ groups['etcd'] }}"
+
+- name: "Generate etcd-server certificate"
+  openssl_certificate:
+    path: "{{ cert.dir }}/{{ item }}/etcd-server.pem"
+    provider: ownca
+    ownca_create_subject_key_identifier: never_create
+    ownca_create_authority_key_identifier: no
+    privatekey_path: "{{ cert.dir }}/{{ item }}/etcd-server.key"
+    csr_path: "{{ cert.dir }}/{{ item }}/etcd-server.csr"
+    ownca_path: "{{ cert.dir }}/etcd-ca.pem"
+    ownca_privatekey_path: "{{ cert.dir }}/etcd-ca.key"
+  with_items:
+    - "{{ groups['etcd'] }}"
+
+# etcd-peer
+- name: "Generate etcd-peer private key"
+  openssl_privatekey:
+    path: "{{ cert.dir }}/{{ item }}/etcd-peer.key"
+    type: RSA
+    size: "{{ cert.size }}"
+  with_items:
+    - "{{ groups['etcd'] }}"
+
+- name: "Generate etcd-peer request"
+  openssl_csr:
+    path: "{{ cert.dir }}/{{ item }}/etcd-peer.csr"
+    privatekey_path: "{{ cert.dir }}/{{ item }}/etcd-peer.key"
+    common_name: "{{ item }}"
+    basic_constraints_critical: yes
+    basic_constraints:
+      - CA:FALSE
+    key_usage_critical: yes
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    extended_key_usage:
+      - serverAuth
+      - clientAuth
+    subject_alt_name:
+      - DNS:localhost
+      - DNS:{{ hostvars[item].dns_name}}
+      - DNS:{{ hostvars[item].advertise}}
+      - IP:127.0.0.1
+      - IP:{{ hostvars[item].advertise }}
+  with_items:
+    - "{{ groups['etcd'] }}"
+
+- name: "Generate etcd-peer certificate"
+  openssl_certificate:
+    path: "{{ cert.dir }}/{{ item }}/etcd-peer.pem"
+    provider: ownca
+    ownca_create_subject_key_identifier: never_create
+    ownca_create_authority_key_identifier: no
+    privatekey_path: "{{ cert.dir }}/{{ item }}/etcd-peer.key"
+    csr_path: "{{ cert.dir }}/{{ item }}/etcd-peer.csr"
+    ownca_path: "{{ cert.dir }}/etcd-ca.pem"
+    ownca_privatekey_path: "{{ cert.dir }}/etcd-ca.key"
+  with_items:
+    - "{{ groups['etcd'] }}"
+
+# apiserver-etcd-client
+- name: "Generate apiserver-etcd-client private key"
+  openssl_privatekey:
+    path: "{{ cert.dir }}/{{ item }}/apiserver-etcd-client.key"
+    type: RSA
+    size: "{{ cert.size }}"
+  with_items:
+    - "{{ groups['master'] }}"
+
+- name: "Generate apiserver-etcd-client request"
+  openssl_csr:
+    path: "{{ cert.dir }}/{{ item }}/apiserver-etcd-client.csr"
+    privatekey_path: "{{ cert.dir }}/{{ item }}/apiserver-etcd-client.key"
+    organization_name: system:masters
+    common_name: kube-apiserver-etcd-client
+    basic_constraints_critical: yes
+    basic_constraints:
+      - CA:FALSE
+    use_common_name_for_san: no
+    key_usage_critical: yes
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    extended_key_usage:
+      - clientAuth
+  with_items:
+    - "{{ groups['master'] }}"
+
+- name: "Generate apiserver-etcd-client certificate"
+  openssl_certificate:
+    path: "{{ cert.dir }}/{{ item }}/apiserver-etcd-client.pem"
+    provider: ownca
+    ownca_create_subject_key_identifier: never_create
+    ownca_create_authority_key_identifier: no
+    privatekey_path: "{{ cert.dir }}/{{ item }}/apiserver-etcd-client.key"
+    csr_path: "{{ cert.dir }}/{{ item }}/apiserver-etcd-client.csr"
+    ownca_path: "{{ cert.dir }}/etcd-ca.pem"
+    ownca_privatekey_path: "{{ cert.dir }}/etcd-ca.key"
+  with_items:
+    - "{{ groups['master'] }}"
+
+# etcd-healthcheck-client
+- name: "Generate etcd-healthcheck-client private key"
+  openssl_privatekey:
+    path: "{{ cert.dir }}/{{ item }}/etcd-healthcheck-client.key"
+    type: RSA
+    size: "{{ cert.size }}"
+  with_items:
+    - "{{ groups['etcd'] }}"
+
+- name: "Generate etcd-healthcheck-client request"
+  openssl_csr:
+    path: "{{ cert.dir }}/{{ item }}/etcd-healthcheck-client.csr"
+    privatekey_path: "{{ cert.dir }}/{{ item }}/etcd-healthcheck-client.key"
+    organization_name: system:masters
+    common_name: kube-etcd-healthcheck-client
+    basic_constraints_critical: yes
+    basic_constraints:
+      - CA:FALSE
+    use_common_name_for_san: no
+    key_usage_critical: yes
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    extended_key_usage:
+      - clientAuth
+  with_items:
+    - "{{ groups['etcd'] }}"
+
+- name: "Generate etcd-healthcheck-client certificate"
+  openssl_certificate:
+    path: "{{ cert.dir }}/{{ item }}/etcd-healthcheck-client.pem"
+    provider: ownca
+    ownca_create_subject_key_identifier: never_create
+    ownca_create_authority_key_identifier: no
+    privatekey_path: "{{ cert.dir }}/{{ item }}/etcd-healthcheck-client.key"
+    csr_path: "{{ cert.dir }}/{{ item }}/etcd-healthcheck-client.csr"
+    ownca_path: "{{ cert.dir }}/etcd-ca.pem"
+    ownca_privatekey_path: "{{ cert.dir }}/etcd-ca.key"
+  with_items:
+    - "{{ groups['etcd'] }}"

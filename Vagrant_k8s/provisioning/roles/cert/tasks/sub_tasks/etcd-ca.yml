@@ -1,0 +1,45 @@
+#etcd-ca
+- stat:
+    path: "{{ cert.dir }}/etcd-ca.key"
+  register: etcd_ca_key
+
+- name: "Generate etcd_ca private key"
+  when: not etcd_ca_key.stat.exists
+  openssl_privatekey:
+    path: "{{ cert.dir }}/etcd-ca.key"
+    type: RSA
+    size: "{{ cert.size }}"
+
+- stat:
+    path: "{{ cert.dir }}/etcd-ca.csr"
+  register: etcd_ca_csr
+
+- name: "Generate etcd_ca request"
+  when: not etcd_ca_csr.stat.exists
+  openssl_csr:
+    path: "{{ cert.dir }}/etcd-ca.csr"
+    privatekey_path: "{{ cert.dir }}/etcd-ca.key"
+    use_common_name_for_san: no
+    common_name: etcd-ca
+    create_subject_key_identifier: yes
+    basic_constraints_critical: yes
+    basic_constraints:
+      - CA:TRUE
+    key_usage_critical: yes
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+      - keyCertSign
+
+- stat:
+    path: "{{ cert.dir }}/etcd-ca.pem"
+  register: etcd_ca_pem
+
+- name: "Generate etcd_ca certificate"
+  when: not etcd_ca_pem.stat.exists
+  openssl_certificate:
+    path: "{{ cert.dir }}/etcd-ca.pem"
+    provider: selfsigned
+    selfsigned_create_subject_key_identifier: never_create
+    privatekey_path: "{{ cert.dir }}/etcd-ca.key"
+    csr_path: "{{ cert.dir }}/etcd-ca.csr"

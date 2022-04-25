@@ -1,0 +1,41 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+SERVERS = [["server01",51],["server02",52],["server03",53]]
+SUBNET="10.0.3"
+if not RUBY_PLATFORM =~ /darwin/i
+    SUBNET="10.0.33"
+end
+
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "ubuntu/bionic64"
+    SERVERS.each do |i|
+	    config.vm.define "#{i[0]}" do |node|
+            node.vm.base_mac = "0800275ADC#{i[1]}"
+            node.vm.hostname="#{i[0]}"
+            node.vm.network "private_network", ip: "#{SUBNET}.#{i[1]}"
+            node.vm.network "forwarded_port", guest: 22, host: 2222, id: "ssh", disabled: true 
+            node.vm.network "forwarded_port", guest: 22, host: (63000+i[1])
+
+            node.vm.provider "virtualbox" do |v|
+                v.name = "#{i[0]}"
+                v.memory = 4096 
+                v.cpus = 2
+                v.customize [ "modifyvm", :id, "--uartmode1", "disconnected" ]
+            end
+          
+	    end
+	end
+    config.vm.provision "ansible" do |ansible|
+          ansible.playbook = "../Ansible/provision.yml"
+          ansible.raw_arguments  = [
+              "--tags=init"
+          ]
+    end
+
+    # config.vm.provision "ansible" do |ansible|
+    #     ansible.playbook = "provision.yaml"
+    # end    
+end
+

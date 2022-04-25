@@ -1,0 +1,71 @@
+--- 
+- hosts: localhost
+  connection: local
+  any_errors_fatal: true
+  roles:
+    - role: cert
+      tags: cert
+    - role: downloads
+      tags: downloads
+
+- name: "Verify"
+  hosts: all
+  roles:
+    - role: verify
+      tags: verify
+
+- name: "Server init"
+  hosts: all
+  roles:
+    - role: init
+      tags: init
+      
+
+- name: "Install docker master"
+  hosts: master
+  roles:
+    - role: docker
+      tags: docker
+      
+- name: "Install docker node"
+  hosts: node
+  roles:
+    - role: docker
+      tags: docker
+
+- name: "Set Etcd Cluster"
+  hosts: etcd
+  roles:
+    - role: etcd
+      tags: etcd
+
+- name: "Set Control Plane Nodes"
+  hosts: master
+  roles:
+    - role: master
+      tags: master
+      
+- name: "Set Worker Nodes"
+  hosts: node
+  roles:
+    - role: node
+      tags: node
+
+- name: "Set Container Networking Plugins"
+  hosts: master[0]
+  roles:
+    - role: network-plugins
+      tags: network-plugins
+      
+- name: "Set Coredns "
+  hosts: master[0]
+  roles:
+    - role: coredns
+      tags: coredns
+
+- name: "Set Metrics"
+  hosts: master[0]
+  roles:
+    - role: metrics
+      tags: metrics
+      

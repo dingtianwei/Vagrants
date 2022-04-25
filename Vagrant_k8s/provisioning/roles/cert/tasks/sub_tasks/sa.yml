@@ -1,0 +1,21 @@
+#sa
+- stat:
+    path: "{{ cert.dir }}/sa.key"
+  register: sa_key
+
+- name: "Generate sa private key"
+  when: not sa_key.stat.exists
+  openssl_privatekey:
+    path: "{{ cert.dir }}/sa.key"
+    type: RSA
+    size: "{{ cert.size }}"
+
+- stat:
+    path: "{{ cert.dir }}/sa.pub"
+  register: sa_pub
+
+- name: "Generate sa pub certificate"
+  when: not sa_pub.stat.exists
+  openssl_publickey:
+    path: "{{ cert.dir }}/sa.pub"
+    privatekey_path: "{{ cert.dir }}/sa.key"

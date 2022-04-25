@@ -1,0 +1,9 @@
+---
+- name: "Create certs directory"
+  file:
+    path: "{{ cert.dir }}/{{ item }}"
+    state: directory
+  with_items:
+    - "{{ groups['etcd'] }}"
+    - "{{ groups['master'] }}"
+    - "{{ groups['node'] }}"

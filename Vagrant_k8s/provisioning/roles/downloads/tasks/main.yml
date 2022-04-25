@@ -1,0 +1,40 @@
+---
+- name: "create downloads directory"
+  file:
+    path: "{{ item }}" 
+    state: directory
+  with_items:
+    - "{{ downloads_dir }}" 
+    - "{{ downloads_dir }}/kubernetes-{{ kubernetes.version }}"
+
+- name: "etcd file stat"
+  stat:
+    path: "{{ downloads_dir }}/etcd-v{{ etcd.version }}-linux-amd64.tar.gz"
+  register: etcd_package
+
+- name: "Download etcd binary"
+  get_url:
+    url: "{{ etcd_url }}"
+    dest: "{{ downloads_dir }}/etcd-v{{ etcd.version }}-linux-amd64.tar.gz" 
+  when: not etcd_package.stat.exists
+
+- name: "kubernetes files stat"
+  stat:
+    path: "{{ downloads_dir }}/kubernetes-{{ kubernetes.version }}/{{ item }}" 
+  register: kubernetes_packages
+  with_items:
+    - "kubectl"
+    - "kube-apiserver"
+    - "kube-controller-manager"
+    - "kube-scheduler"
+    - "kubelet"
+    - "kube-proxy"
+    
+
+- name: "Download kubernetes bin file"
+  get_url:
+    url: "{{ kubernetes.download_url }}/{{ kubernetes.version }}/bin/linux/amd64/{{ item.item }}"
+    dest: "{{ downloads_dir }}/kubernetes-{{ kubernetes.version }}/{{ item.item }}" 
+  with_items:
+    - "{{ kubernetes_packages.results }}"
+  when: not item.stat.exists

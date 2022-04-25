@@ -1,0 +1,51 @@
+---
+- name: "Unarchive etcd"
+  unarchive:
+    src: "{{ downloads_dir }}/etcd-v{{ etcd.version }}-linux-amd64.tar.gz"
+    dest: /usr/local/src
+  
+- name: "Install etcd"
+  copy:
+    src: "{{ item.src }}"
+    dest: "/usr/local/bin/"
+    mode: 0755
+    remote_src: yes
+  with_items:
+    - {src: "/usr/local/src/etcd-v{{ etcd.version }}-linux-amd64/etcd"}
+    - {src: "/usr/local/src/etcd-v{{ etcd.version }}-linux-amd64/etcdctl"}
+
+- name: "Distribution certs"
+  copy:
+    src: "{{ item.line }}"
+    dest: "/etc/etcd/ssl/"
+    mode: 0640
+  with_items:
+    - {line: '{{ cert.dir }}/etcd-ca.pem'}
+    - {line: '{{ cert.dir }}/{{ inventory_hostname }}/etcd-server.pem'}
+    - {line: '{{ cert.dir }}/{{ inventory_hostname }}/etcd-server.key'}
+    - {line: '{{ cert.dir }}/{{ inventory_hostname }}/etcd-peer.pem'}
+    - {line: '{{ cert.dir }}/{{ inventory_hostname }}/etcd-peer.key'}
+    - {line: '{{ cert.dir }}/{{ inventory_hostname }}/etcd-healthcheck-client.pem'}
+    - {line: '{{ cert.dir }}/{{ inventory_hostname }}/etcd-healthcheck-client.key'}
+  tags:
+    - dis_etcd_certs
+    - dis_certs
+
+- name: "Create etcd data directory"
+  file:
+    path: "{{ etcd.data_dir }}"
+    state: directory
+
+- name: "Generate etcd configure"
+  template:
+    src: "etcd.config.yml.j2"
+    dest: "/etc/etcd/etcd.config.yml"
+  notify:
+    - restart etcd
+
+- name: "Generate etcd service"
+  copy:
+    src: "etcd.service"
+    dest: "/lib/systemd/system/etcd.service"
+  notify:
+    - restart etcd

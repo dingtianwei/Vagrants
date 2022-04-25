@@ -1,0 +1,9 @@
+---
+- name: "Generate coredns yaml"
+  template:
+    src: "coredns-{{ coredns.version }}.yaml.j2"
+    dest: "/tmp/coredns.yaml"
+
+
+- name: "Deploy coredns"
+  shell: "kubectl apply -f /tmp/coredns.yaml"

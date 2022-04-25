@@ -1,0 +1,64 @@
+# Local
+ansible_log_dir: "{{ playbook_dir }}/log"
+downloads_dir: "{{ playbook_dir }}/packages"
+conf_dir: "{{ playbook_dir }}/conf"
+
+# init 
+#ntpdata_url: "ntp.myhuaweicloud.com"
+ntpdata_url: "ntp.myhuaweicloud.com"
+timezone: "Asia/Shanghai"
+
+# token:
+#   id: 330d32
+#   secret: 9cdb7d81418b3ea8
+
+docker:
+  version: 5:19.03.15~3-0
+
+cert:
+  # 签发集群整数保存目录，默认签发10年有限期证书
+  dir: "{{ playbook_dir }}/certs/{{env}}"
+  # 签发证书大小
+  size: 2048
+
+# loadbalance:
+#   #对于无loadbalance的环境, single为True, ip和port为单master的adverdise的ip和port
+#   ip: 192.168.1.9
+#   port: 6443
+#   domain_name: k8s.uat.intersvc
+#   single: True
+
+etcd:
+  version: 3.4.15
+  # etcd 数据目录
+  data_dir: "/var/lib/etcd"
+  conf_dir: "/etc/etcd"
+
+etcd_url: "https://mirrors.huaweicloud.com/etcd/v{{ etcd.version }}/etcd-v{{ etcd.version }}-linux-amd64.tar.gz"
+
+images:
+  pod_infra_container_image: harbor.hw.jiankangyouyi.com:5000/k8s-pubulic/pause-amd64:3.2
+
+kubernetes:
+  download_url: https://kubernetes.oss-cn-hangzhou.aliyuncs.com/kubernetes-release/release
+  version: v1.20.6
+  podSubnet: 10.64.0.0/12
+  serviceSubnet: 10.80.0.0/16
+  portRange: 30000-50000
+  kubelet_dir: "/var/lib/kubelet"
+
+# Network Plugin
+network_plugin: calico
+calico:
+  version: v3.15.3
+  network_mode: ipip
+  base_image: harbor.hw.jiankangyouyi.com:5000/k8s-pubulic
+  # base_image: docker.io/calico
+
+coredns:
+  version: 1.7.0
+  base_image: harbor.hw.jiankangyouyi.com:5000/k8s-pubulic
+
+metrics:
+  version: v0.4.1
+  base_image: harbor.hw.jiankangyouyi.com:5000/k8s-pubulic

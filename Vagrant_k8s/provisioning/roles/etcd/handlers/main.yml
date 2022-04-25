@@ -1,0 +1,30 @@
+---
+- name: restart etcd
+  command: /bin/true
+  notify:
+    - reload etcd
+    - wait for etcd up
+
+- name: reload etcd
+  service:
+    name: etcd
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+
+
+- name: wait for etcd up
+  uri:
+    url: "https://{{ advertise }}:2379/health"
+    validate_certs: no
+    client_cert: "/etc/etcd/ssl/etcd-healthcheck-client.pem"
+    client_key: "/etc/etcd/ssl/etcd-healthcheck-client.key"
+  register: result
+  until: result.status is defined and result.status == 200
+  retries: 60
+  delay: 1
+
+# 手工查看etcd集群状态
+# export ETCDCTL_API=3
+# EP="10.0.3.51:2379,10.0.3.52:2379,10.0.3.53:2379"
+# etcdctl --endpoints="${EP}" --cacert=/etc/etcd/ssl/etcd-ca.pem --cert=/etc/etcd/ssl/etcd-healthcheck-client.pem --key=/etc/etcd/ssl/etcd-healthcheck-client.key  endpoint status --write-out=table
