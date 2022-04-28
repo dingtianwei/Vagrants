@@ -41,9 +41,9 @@ ansible-playbook playbook.yml -i inventory [-e env=xxx]
 
 ## 其他
 to do:
-1. 减少依赖，不使用filter_plugins
+1. 减少依赖，不使用filter_plugins - 完成
 2. etcd配置文件变量使用不完全
-3. 减少依赖，不使用next_nth_usable
+3. 减少依赖，不使用next_nth_usable - 取消
 4. init唯一主机的设计，有待优化
 5. 集群扩容的操作，比如，新增一个node
 6. 替换集群证书、kubernetes版本升级等

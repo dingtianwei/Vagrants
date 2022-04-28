@@ -47,6 +47,7 @@ kubernetes:
   portRange: 30000-50000
   kubelet_dir: "/var/lib/kubelet"
 
+  
 # Network Plugin
 network_plugin: calico
 calico:
