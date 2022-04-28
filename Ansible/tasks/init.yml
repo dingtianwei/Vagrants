@@ -45,10 +45,29 @@
 
 - name: install packages
   apt: 
-    name: ['ntpdate', 'git', 'vim', 'curl', 'wget', 'jq', 'psmisc', 'net-tools', 'telnet',  'lvm2'] 
+    name: "{{ item }}"
     state: present
     update_cache: yes
-    cache_valid_time: 86400
+    # cache_valid_time: 86400
+  loop:
+    - 'git'
+    - 'vim'
+    - 'curl'
+    - 'wget'
+    - 'psmisc'
+    - 'net-tools'
+    - 'telnet'
+    - 'lvm2'
+    - 'jq'
+    - 'ntpdate'
+
+# - name: install packages in ubuntu 20.04
+#   apt:
+#     name: "{{ item }}"
+#   loop:
+#   - 'ntpdate'
+#   - 'jq'
+#   when: "{{ ansible_distribution_version is version('20.04', '>=') }}"    
 - name: update /etc/vim/vimrc
   blockinfile:
     dest: /etc/vim/vimrc
