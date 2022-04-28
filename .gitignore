@@ -6,3 +6,4 @@
 *.pyc
 packages/
 __pycache__/
+vagrant_data/
